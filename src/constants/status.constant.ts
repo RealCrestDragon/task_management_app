@@ -1,0 +1,7 @@
+export enum TaskStatus {
+  ACTIVE = 'ACTIVE',
+  COMPLETED = 'COMPLETED',
+  DELETED = 'DELETED',
+  ON_HOLD = 'ON_HOLD',
+  ARCHIVED = 'ARCHIVED',
+}
