@@ -13,6 +13,7 @@ import { JwtGuard } from './common/guards/jwt.guard';
 import { CachingModule } from './common/caching/caching.module';
 import { TaskModule } from './modules/task/task.module';
 import { SubtaskModule } from './modules/subtask/subtask.module';
+import { TagModule } from './modules/tag/tag.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { SubtaskModule } from './modules/subtask/subtask.module';
     AuthModule,
     UserModule,
     TaskModule,
+    TagModule,
     SubtaskModule,
     CachingModule,
     ConfigModule.forRoot({
