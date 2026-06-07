@@ -29,7 +29,7 @@ module.exports = {
       content: {
         type: DataTypes.STRING,
       },
-      dueDate: {
+      due_date: {
         type: DataTypes.DATE,
       },
       status: {

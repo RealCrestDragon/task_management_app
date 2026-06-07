@@ -22,13 +22,13 @@ module.exports = {
           key: 'id',
         },
       },
-      dueDate: {
+      due_date: {
         type: DataTypes.DATE,
       },
       status: {
         type: DataTypes.ENUM(status),
       },
-      isPinned: {
+      is_pinned: {
         type: DataTypes.BOOLEAN,
       },
       created_at: {
