@@ -30,26 +30,41 @@ export class TaskRepository {
     } = query;
     return this.prisma.task.findMany({
       where: {
-        ...(name && { name }),
+        ...(name && {
+          name: {
+            contains: name,
+            mode: 'insensitive',
+          },
+        }),
         ...(authorId && { authorId }),
         ...(isPinned && { isPinned }),
         ...(status && { status }),
         ...(dueDateFrom && { dueDate: { gte: dueDateFrom } }),
         ...(dueDateTo && { dueDate: { lte: dueDateTo } }),
-        ...(assignedByIds?.length && {
-          taskAssignments: {
-            some: {
-              assignedById: { in: assignedByIds },
-            },
-          },
-        }),
-        ...(assignedToIds?.length && {
-          taskAssignments: {
-            some: {
-              assignedToId: { in: assignedToIds },
-            },
-          },
-        }),
+        AND: [
+          ...(assignedByIds?.length
+            ? [
+                {
+                  taskAssignments: {
+                    some: {
+                      assignedById: { in: assignedByIds },
+                    },
+                  },
+                },
+              ]
+            : []),
+          ...(assignedToIds?.length
+            ? [
+                {
+                  taskAssignments: {
+                    some: {
+                      assignedToId: { in: assignedToIds },
+                    },
+                  },
+                },
+              ]
+            : []),
+        ],
       },
       orderBy: { ...(orderBy && { [orderBy]: orderDirection ?? 'asc' }) },
       skip: (page - 1) * limit,

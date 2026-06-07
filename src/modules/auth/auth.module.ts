@@ -12,8 +12,9 @@ const { JWT_KEY } = authConfig;
   imports: [
     ConfigModule,
     JwtModule.register({
+      global: true,
       secret: JWT_KEY,
-      signOptions: { expiresIn: '6000s' },
+      signOptions: { expiresIn: '3600s' },
     }),
   ],
   controllers: [AuthController],

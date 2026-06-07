@@ -12,13 +12,21 @@ import { AssignTaskDto } from './dto/assignTask.dto';
 import { TaskAssignmentRepository } from './repositories/taskAssignment.repository';
 import { UpdateTaskStatusDto } from './dto/updateTaskStatus.dto';
 import { validTransitions } from 'src/constants/status.constant';
-import { Task, TaskAssignment, TaskStatus } from 'generated/prisma/client';
+import {
+  NotificationType,
+  Task,
+  TaskAssignment,
+  TaskStatus,
+} from 'generated/prisma/client';
+import { NotificationProducer } from 'src/common/queue/notification.producer';
+import { NOTIFICATION_CONTENT } from 'src/constants/notification.constant';
 
 @Injectable()
 export class TaskService {
   constructor(
     private readonly taskRepository: TaskRepository,
     private readonly taskAssignmentRepository: TaskAssignmentRepository,
+    private readonly notificationProducer: NotificationProducer,
   ) {}
 
   async getTasks(query: QueryTaskDto): Promise<Task[]> {
@@ -51,11 +59,35 @@ export class TaskService {
       taskId: id,
       assignedById: user.id,
     }));
-    return this.taskAssignmentRepository.assignTask(
+    const result = await this.taskAssignmentRepository.assignTask(
       id,
       user.id,
       assignTaskPayload,
     );
+
+    const type = NotificationType.TASK_ASSIGNED;
+    const { title, content } = NOTIFICATION_CONTENT[type];
+
+    void Promise.all(
+      payload.assignTasks.map(({ assignedToId }) => {
+        return this.notificationProducer
+          .pushNotification({
+            userId: assignedToId,
+            taskId: id,
+            title,
+            content,
+            type,
+          })
+          .catch((error) => {
+            console.log(
+              error,
+              `Push notification failed for user ${assignedToId} `,
+            );
+          });
+      }),
+    );
+
+    return result;
   }
 
   async updateStatus(id: number, payload: UpdateTaskStatusDto): Promise<Task> {

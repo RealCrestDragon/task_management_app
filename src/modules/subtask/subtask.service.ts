@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -12,13 +13,22 @@ import { AssignSubtaskDto } from './dto/assignSubtask.dto';
 import { SubtaskAssignmentRepository } from './repositories/subtaskAssignment.repository';
 import { UpdateSubtaskStatusDto } from './dto/updateSubtaskStatus.dto';
 import { validTransitions } from 'src/constants/status.constant';
-import { Subtask, SubtaskAssignment } from 'generated/prisma/client';
+import {
+  NotificationType,
+  Subtask,
+  SubtaskAssignment,
+} from 'generated/prisma/client';
+import { TaskRepository } from '../task/repositories/task.repository';
+import { NotificationProducer } from 'src/common/queue/notification.producer';
+import { NOTIFICATION_CONTENT } from 'src/constants/notification.constant';
 
 @Injectable()
 export class SubtaskService {
   constructor(
+    private readonly taskRepository: TaskRepository,
     private readonly subtaskRepository: SubtaskRepository,
     private readonly subtaskAssignmentRepository: SubtaskAssignmentRepository,
+    private readonly notificationProducer: NotificationProducer,
   ) {}
 
   async getSubtasks(
@@ -37,6 +47,7 @@ export class SubtaskService {
     user: PublicUser,
     payload: CreateSubtaskDto,
   ): Promise<Subtask> {
+    await this._checkDueDate(taskId, payload);
     return this.subtaskRepository.createSubtask(taskId, user.id, payload);
   }
 
@@ -45,6 +56,7 @@ export class SubtaskService {
     id: number,
     payload: UpdateSubtaskDto,
   ): Promise<Subtask> {
+    await this._checkDueDate(taskId, payload);
     return this.subtaskRepository.updateSubtask(taskId, id, payload);
   }
 
@@ -58,11 +70,35 @@ export class SubtaskService {
       subtaskId: id,
       assignedById: user.id,
     }));
-    return this.subtaskAssignmentRepository.assignSubtask(
+    const result = this.subtaskAssignmentRepository.assignSubtask(
       id,
       user.id,
       assignSubtaskPayload,
     );
+
+    const type = NotificationType.SUBTASK_ASSIGNED;
+    const { title, content } = NOTIFICATION_CONTENT[type];
+
+    void Promise.all(
+      payload.assignSubtasks.map(({ assignedToId }) => {
+        return this.notificationProducer
+          .pushNotification({
+            userId: assignedToId,
+            subtaskId: id,
+            title,
+            content,
+            type,
+          })
+          .catch((error) => {
+            console.log(
+              error,
+              `Push notification failed for user ${assignedToId} `,
+            );
+          });
+      }),
+    );
+
+    return result;
   }
 
   async updateStatus(
@@ -80,5 +116,14 @@ export class SubtaskService {
 
   async deleteSubtask(id: number) {
     return this.subtaskRepository.deleteSubtask(id);
+  }
+
+  private async _checkDueDate(taskId: number, payload: UpdateSubtaskDto) {
+    const task = await this.taskRepository.findById(taskId);
+    if (!task) throw new NotFoundException('Task not found');
+    if (payload.dueDate && task.dueDate && payload.dueDate > task.dueDate)
+      throw new BadRequestException(
+        'Subtask due date has to be sooner than task due date',
+      );
   }
 }

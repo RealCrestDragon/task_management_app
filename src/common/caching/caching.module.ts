@@ -15,7 +15,9 @@ import { KeyvCacheableMemory } from 'cacheable';
             new Keyv({
               store: new KeyvCacheableMemory({ ttl: 60000, lruSize: 5000 }),
             }),
-            new KeyvRedis(configService.get<string>('REDIS_URL')),
+            new KeyvRedis(configService.get<string>('REDIS_URL'), {
+              connectionTimeout: 5000,
+            }),
           ],
         };
       },

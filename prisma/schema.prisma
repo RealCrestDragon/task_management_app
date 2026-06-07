@@ -30,6 +30,7 @@ model User{
   tasksAssignedTo TaskAssignment[] @relation("TaskAssignedTo")
   subtasksAssignedBy SubtaskAssignment[] @relation("SubtaskAssignedBy")
   subtasksAssignedTo SubtaskAssignment[] @relation("SubtaskAssignedTo")
+  notifications Notification[]
 }
 
 model Task{
@@ -47,6 +48,7 @@ model Task{
   subtasks Subtask[]
   taskAssignments  TaskAssignment[]
   taskTags TaskTag[]
+  notifications Notification[]
 }
 
 model Subtask{
@@ -63,6 +65,7 @@ model Subtask{
   author  User @relation(fields: [authorId], references: [id] )
   task  Task @relation(fields: [taskId], onDelete: Cascade, references: [id] )
   subtaskAssignments  SubtaskAssignment[]
+  notifications Notification[]
 }
 
 model Tag{
@@ -101,7 +104,7 @@ model SubtaskAssignment{
   deletedAt DateTime?
   assignedBy  User @relation("SubtaskAssignedBy", fields: [assignedById], onDelete: Cascade, references: [id] )
   assignedTo  User @relation("SubtaskAssignedTo", fields: [assignedToId], onDelete: Cascade, references: [id] )
-  subTask  Subtask @relation(fields: [subtaskId], onDelete: Cascade, references: [id] )
+  subtask  Subtask @relation(fields: [subtaskId], onDelete: Cascade, references: [id] )
 }
 
 model TaskTag{
@@ -114,6 +117,22 @@ model TaskTag{
   task  Task @relation(fields: [taskId], references: [id] )
   tag  Tag @relation(fields: [tagId], references: [id] )
 }
+model Notification{
+  id  Int @id @default(autoincrement())
+  userId  Int
+  title  String
+  taskId    Int?
+  subtaskId   Int?
+  content   String?
+  type      NotificationType
+  isRead    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  user  User @relation(fields: [userId], references: [id] )
+  task      Task?    @relation(fields: [taskId], references: [id])
+  subtask   Subtask? @relation(fields: [subtaskId], references: [id])
+}
 
 enum TaskStatus {
   ACTIVE
@@ -121,3 +140,11 @@ enum TaskStatus {
   ON_HOLD
   ARCHIVED
 }
+
+enum NotificationType {
+  TASK_ASSIGNED
+  TASK_REMINDER
+  SUBTASK_ASSIGNED
+  SUBTASK_REMINDER
+}
+

@@ -1,13 +1,13 @@
 import {
   IsArray,
   IsBoolean,
-  IsDateString,
+  IsDate,
   IsEnum,
   IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   SortingDirections,
   TaskSortingFields,
@@ -19,12 +19,12 @@ export class QueryTaskDto {
   @IsOptional()
   name?: string;
 
-  @IsDateString()
+  @IsDate()
   @IsOptional()
   @Type(() => Date)
   dueDateFrom?: Date;
 
-  @IsDateString()
+  @IsDate()
   @IsOptional()
   @Type(() => Date)
   dueDateTo?: Date;
@@ -36,7 +36,7 @@ export class QueryTaskDto {
 
   @IsBoolean()
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(({ value }) => value === 'true' || value === true)
   isPinned?: boolean;
 
   @IsEnum(TaskStatus)
@@ -45,12 +45,16 @@ export class QueryTaskDto {
 
   @IsArray()
   @IsOptional()
-  @Type(() => Number)
+  @Transform(({ value }) =>
+    Array.isArray(value) ? value.map(Number) : [Number(value)],
+  )
   assignedToIds?: number[];
 
   @IsArray()
   @IsOptional()
-  @Type(() => Number)
+  @Transform(({ value }) =>
+    Array.isArray(value) ? value.map(Number) : [Number(value)],
+  )
   assignedByIds?: number[];
 
   @IsEnum(TaskSortingFields)
