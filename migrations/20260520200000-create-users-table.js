@@ -20,7 +20,7 @@ module.exports = {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      fullName: {
+      full_name: {
         type: DataTypes.STRING,
       },
       created_at: {

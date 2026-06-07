@@ -27,6 +27,7 @@ const {
           idle: 10000,
         },
         logging: console.log,
+        autoLoadModels: true,
       }),
     }),
   ],
