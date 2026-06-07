@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -10,41 +11,36 @@ import bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { AuthResponse, PlainUserWithoutPassword } from './auth.type';
 import { PrismaClientKnownRequestError } from 'generated/prisma/internal/prismaNamespace';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
-
-  private _generateUsername(email: string): string {
-    const emailBase = email.split('@')[0];
-    const suffix = Math.floor(Math.random() * 10000);
-    return `${emailBase}_${suffix}`;
-  }
-
-  private async _hashPassword(password: string): Promise<string> {
-    return bcrypt.hash(password, 10);
-  }
-  private async _comparePassword(
-    password: string,
-    hash: string,
-  ): Promise<boolean> {
-    return bcrypt.compare(password, hash);
-  }
 
   private _generateToken(payload: PlainUserWithoutPassword): string {
     console.log(payload);
     return this.jwtService.sign(payload);
   }
 
+  private async _setUserCache(
+    id: number,
+    accessToken: string,
+  ): Promise<string> {
+    return this.cacheManager.set(`user:${id}`, accessToken);
+  }
+
   async register(registerDto: RegisterDto): Promise<AuthResponse> {
     const { email, password, fullName } = registerDto;
-    const hash = await this._hashPassword(password);
+    const hash = await bcrypt.hash(password, 10);
     while (true) {
       try {
-        const username = this._generateUsername(email);
+        const emailBase = email.split('@')[0];
+        const suffix = Math.floor(Math.random() * 10000);
+        const username = `${emailBase}_${suffix}`;
         const newUser = await this.userRepository.createUser({
           username,
           email,
@@ -58,6 +54,10 @@ export class AuthService {
           fullName,
         };
         const accessToken = this._generateToken(plainUserWithoutPassword);
+
+        this._setUserCache(newUser.id, accessToken).catch((error) =>
+          console.log(`Catching for user ${newUser.id} fail`, error),
+        );
 
         return { user: plainUserWithoutPassword, accessToken };
       } catch (e) {
@@ -80,15 +80,17 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
     const { id, username, email, fullName } = user;
-    const plainUserWithoutPassword = { id, username, email, fullName };
-    const isCorrectPassword = await this._comparePassword(
-      password,
-      user.password,
-    );
+
+    const isCorrectPassword = await bcrypt.compare(password, user.password);
     if (!isCorrectPassword)
       throw new UnauthorizedException('Invalid credentials');
 
+    const plainUserWithoutPassword = { id, username, email, fullName };
     const accessToken = this._generateToken(plainUserWithoutPassword);
+
+    this._setUserCache(id, accessToken).catch((error) =>
+      console.log(`Catching for user ${id} fail`, error),
+    );
 
     return { user: plainUserWithoutPassword, accessToken };
   }

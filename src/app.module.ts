@@ -7,17 +7,28 @@ import databaseConfig from './config/database.config';
 import authConfig from './config/auth.config';
 import { UserModule } from './modules/user/user.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtGuard } from './common/guards/jwt.guard';
+import { CachingModule } from './common/caching/caching.module';
+import cacheConfig from './config/cache.config';
 
 @Module({
   imports: [
     PrismaModule,
     AuthModule,
     UserModule,
+    CachingModule,
     ConfigModule.forRoot({
-      load: [databaseConfig, authConfig],
+      load: [databaseConfig, authConfig, cacheConfig],
     }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtGuard,
+    },
+  ],
 })
 export class AppModule {}
