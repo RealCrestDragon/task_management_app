@@ -6,6 +6,9 @@
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
+  runtime                = "nodejs"
+  moduleFormat           = "cjs"
+  generatedFileExtension = "ts" 
 }
 
 datasource db {
@@ -35,7 +38,7 @@ model Task{
   content  String?
   authorId  Int
   dueDate DateTime?
-  status TaskStatus
+  status TaskStatus @default(ACTIVE)
   isPinned  Boolean @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -43,7 +46,7 @@ model Task{
   author  User @relation(fields: [authorId], references: [id] )
   subtasks Subtask[]
   taskAssignments  TaskAssignment[]
-  taskTag TaskTag[]
+  taskTags TaskTag[]
 }
 
 model Subtask{
@@ -53,12 +56,12 @@ model Subtask{
   taskId  Int
   authorId  Int
   dueDate DateTime?
-  status TaskStatus
+  status TaskStatus   @default(ACTIVE)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
   author  User @relation(fields: [authorId], references: [id] )
-  task  Task @relation(fields: [taskId], references: [id] )
+  task  Task @relation(fields: [taskId], onDelete: Cascade, references: [id] )
   subtaskAssignments  SubtaskAssignment[]
 }
 
@@ -70,7 +73,7 @@ model Tag{
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
-  taskTag TaskTag[]
+  taskTags TaskTag[]
 }
 
 model TaskAssignment{
@@ -78,13 +81,13 @@ model TaskAssignment{
   taskId  Int
   assignedById  Int
   assignedToId  Int
-  role  String
+  role  String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
-  assignedBy  User @relation("TaskAssignedBy", fields: [assignedById], references: [id] )
-  assignedTo  User @relation("TaskAssignedTo", fields: [assignedToId], references: [id] )
-  task  Task @relation(fields: [taskId], references: [id] )
+  assignedBy  User @relation("TaskAssignedBy", fields: [assignedById], onDelete: Cascade, references: [id] )
+  assignedTo  User @relation("TaskAssignedTo", fields: [assignedToId], onDelete: Cascade, references: [id] )
+  task  Task @relation(fields: [taskId], onDelete: Cascade, references: [id] )
 }
 
 model SubtaskAssignment{
@@ -92,13 +95,13 @@ model SubtaskAssignment{
   subtaskId  Int
   assignedById  Int
   assignedToId  Int
-  role  String
+  role  String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
-  assignedBy  User @relation("SubtaskAssignedBy", fields: [assignedById], references: [id] )
-  assignedTo  User @relation("SubtaskAssignedTo", fields: [assignedToId], references: [id] )
-  subTask  Subtask @relation(fields: [subtaskId], references: [id] )
+  assignedBy  User @relation("SubtaskAssignedBy", fields: [assignedById], onDelete: Cascade, references: [id] )
+  assignedTo  User @relation("SubtaskAssignedTo", fields: [assignedToId], onDelete: Cascade, references: [id] )
+  subTask  Subtask @relation(fields: [subtaskId], onDelete: Cascade, references: [id] )
 }
 
 model TaskTag{
@@ -115,7 +118,6 @@ model TaskTag{
 enum TaskStatus {
   ACTIVE
   COMPLETED
-  DELETED
   ON_HOLD
   ARCHIVED
 }

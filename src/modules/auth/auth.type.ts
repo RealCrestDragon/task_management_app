@@ -1,11 +1,6 @@
-import { User } from 'generated/prisma/browser';
-
-export type PlainUserWithoutPassword = Omit<
-  User,
-  'password' | 'createdAt' | 'updatedAt' | 'deletedAt'
->;
+import { PublicUser } from 'src/common/types/user.type';
 
 export interface AuthResponse {
-  user: PlainUserWithoutPassword;
+  user: PublicUser;
   accessToken: string;
 }

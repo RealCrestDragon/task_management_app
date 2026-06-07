@@ -4,7 +4,8 @@ import { AuthService } from './auth.service';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { authConfig } from 'src/config/auth.config';
-import { UserRepository } from './repositories/user.repository';
+import { JwtStrategy } from './jwt.strategy';
+import { UserRepository } from '../user/repositories/user.repository';
 
 const { JWT_KEY } = authConfig;
 @Module({
@@ -12,10 +13,10 @@ const { JWT_KEY } = authConfig;
     ConfigModule,
     JwtModule.register({
       secret: JWT_KEY,
-      signOptions: { expiresIn: '60s' },
+      signOptions: { expiresIn: '6000s' },
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, UserRepository],
+  providers: [AuthService, UserRepository, JwtStrategy],
 })
 export class AuthModule {}

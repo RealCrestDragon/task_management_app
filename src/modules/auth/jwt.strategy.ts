@@ -1,9 +1,9 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import { UserRepository } from './repositories/user.repository';
 import { ConfigService } from '@nestjs/config';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+import { UserRepository } from '../user/repositories/user.repository';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -15,7 +15,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('authConfig.JWT_KEY') || '',
+      secretOrKey: configService.get<string>('JWT_KEY') || '',
     });
   }
 
@@ -23,7 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const { id } = payload;
     const cachedUser = await this.cacheManager.get(`user:${id}`);
     if (cachedUser) return cachedUser;
-    const user = await this.userRepository.findById(id);
+    const user = await this.userRepository.findUserById(id);
     if (!user) throw new UnauthorizedException('Email does not exist');
     return user;
   }
