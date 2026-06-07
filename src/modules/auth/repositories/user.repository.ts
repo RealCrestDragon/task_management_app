@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
-import { Op } from 'sequelize';
-import { User } from 'src/entities/user.entity';
-
+import { PrismaService } from 'src/prisma/prisma.service';
+import { User } from 'generated/prisma/client';
 interface CreateUserPayload {
   username: string;
   password: string;
@@ -12,32 +10,25 @@ interface CreateUserPayload {
 
 @Injectable()
 export class UserRepository {
-  constructor(
-    @InjectModel(User)
-    private userModel: typeof User,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async createUser(payload: CreateUserPayload): Promise<User> {
-    return this.userModel.create({ ...payload });
+    return this.prisma.user.create({ data: payload });
   }
 
   async usernameExists(username: string): Promise<boolean> {
-    const user = await this.userModel.findOne({ where: { username } });
+    const user = await this.prisma.user.findUnique({ where: { username } });
     return !!user;
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.userModel.findOne({
-      where: {
-        email,
-      },
-    });
+    return this.prisma.user.findUnique({ where: { email } });
   }
 
   async findByEmailOrUsername(emailOrUsername: string): Promise<User | null> {
-    return this.userModel.findOne({
+    return this.prisma.user.findFirst({
       where: {
-        [Op.or]: [{ email: emailOrUsername }, { username: emailOrUsername }],
+        OR: [{ email: emailOrUsername }, { username: emailOrUsername }],
       },
     });
   }

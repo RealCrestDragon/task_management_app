@@ -1,0 +1,121 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User{
+  id  Int @id @default(autoincrement())
+  username  String @unique
+  email  String @unique
+  password  String
+  fullName  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  deletedAt DateTime?
+  tasks Task[]
+  subtasks Subtask[]
+  tasksAssignedBy TaskAssignment[] @relation("TaskAssignedBy")
+  tasksAssignedTo TaskAssignment[] @relation("TaskAssignedTo")
+  subtasksAssignedBy SubtaskAssignment[] @relation("SubtaskAssignedBy")
+  subtasksAssignedTo SubtaskAssignment[] @relation("SubtaskAssignedTo")
+}
+
+model Task{
+  id  Int @id @default(autoincrement())
+  name  String
+  content  String?
+  authorId  Int
+  dueDate DateTime?
+  status TaskStatus
+  isPinned  Boolean @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  author  User @relation(fields: [authorId], references: [id] )
+  subtasks Subtask[]
+  taskAssignments  TaskAssignment[]
+  taskTag TaskTag[]
+}
+
+model Subtask{
+  id  Int @id @default(autoincrement())
+  name  String
+  content  String?
+  taskId  Int
+  authorId  Int
+  dueDate DateTime?
+  status TaskStatus
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  author  User @relation(fields: [authorId], references: [id] )
+  task  Task @relation(fields: [taskId], references: [id] )
+  subtaskAssignments  SubtaskAssignment[]
+}
+
+model Tag{
+  id  Int @id @default(autoincrement())
+  name  String
+  description  String?
+  color  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  taskTag TaskTag[]
+}
+
+model TaskAssignment{
+  id  Int @id @default(autoincrement())
+  taskId  Int
+  assignedById  Int
+  assignedToId  Int
+  role  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  assignedBy  User @relation("TaskAssignedBy", fields: [assignedById], references: [id] )
+  assignedTo  User @relation("TaskAssignedTo", fields: [assignedToId], references: [id] )
+  task  Task @relation(fields: [taskId], references: [id] )
+}
+
+model SubtaskAssignment{
+  id  Int @id @default(autoincrement())
+  subtaskId  Int
+  assignedById  Int
+  assignedToId  Int
+  role  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  assignedBy  User @relation("SubtaskAssignedBy", fields: [assignedById], references: [id] )
+  assignedTo  User @relation("SubtaskAssignedTo", fields: [assignedToId], references: [id] )
+  subTask  Subtask @relation(fields: [subtaskId], references: [id] )
+}
+
+model TaskTag{
+  id  Int @id @default(autoincrement())
+  taskId  Int
+  tagId  Int
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  task  Task @relation(fields: [taskId], references: [id] )
+  tag  Tag @relation(fields: [tagId], references: [id] )
+}
+
+enum TaskStatus {
+  ACTIVE
+  COMPLETED
+  DELETED
+  ON_HOLD
+  ARCHIVED
+}

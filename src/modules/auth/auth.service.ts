@@ -6,10 +6,10 @@ import {
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UserRepository } from './repositories/user.repository';
-import { UniqueConstraintError } from 'sequelize';
 import bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { AuthResponse, PlainUserWithoutPassword } from './auth.type';
+import { PrismaClientKnownRequestError } from 'generated/prisma/internal/prismaNamespace';
 
 @Injectable()
 export class AuthService {
@@ -51,7 +51,6 @@ export class AuthService {
           password: hash,
           fullName,
         });
-
         const plainUserWithoutPassword = {
           id: newUser.id,
           username,
@@ -62,12 +61,12 @@ export class AuthService {
 
         return { user: plainUserWithoutPassword, accessToken };
       } catch (e) {
-        if (e instanceof UniqueConstraintError) {
-          const { fields } = e;
-          if (fields['email']) {
+        if (e instanceof PrismaClientKnownRequestError && e.code === 'P2002') {
+          const fields = e.meta?.target as string[];
+          if (fields.includes('email')) {
             throw new ConflictException('User already exists');
           }
-          if (fields['username']) continue;
+          if (fields.includes('username')) continue;
         }
         throw e;
       }

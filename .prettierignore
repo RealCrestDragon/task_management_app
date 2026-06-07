@@ -1,0 +1,4 @@
+# .prettierignore
+generated
+dist
+node_modules
