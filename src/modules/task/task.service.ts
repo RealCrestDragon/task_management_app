@@ -12,7 +12,7 @@ import { AssignTaskDto } from './dto/assignTask.dto';
 import { TaskAssignmentRepository } from './repositories/taskAssignment.repository';
 import { UpdateTaskStatusDto } from './dto/updateTaskStatus.dto';
 import { validTransitions } from 'src/constants/status.constant';
-import { Task, TaskAssignment } from 'generated/prisma/client';
+import { Task, TaskAssignment, TaskStatus } from 'generated/prisma/client';
 
 @Injectable()
 export class TaskService {
@@ -62,8 +62,16 @@ export class TaskService {
     const { status } = payload;
     const task = await this.taskRepository.findById(id);
     if (!task) throw new NotFoundException('Task not found');
+    const { subtasks } = task;
     if (!validTransitions[task.status].includes(status)) {
-      throw new ConflictException("Can't update status");
+      throw new ConflictException('Invalid status');
+    }
+    if (
+      status === TaskStatus.COMPLETED &&
+      subtasks.length &&
+      subtasks.some(({ status }) => status === TaskStatus.ACTIVE)
+    ) {
+      throw new ConflictException('There are unfinished subtask(s)');
     }
     return this.taskRepository.updateStatus(id, status);
   }

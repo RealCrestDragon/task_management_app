@@ -4,8 +4,11 @@ import { UpdateTaskDto } from '../dto/updateTask.dto';
 import { QueryTaskDto } from '../dto/queryTask.dto';
 import { TaskStatus } from 'generated/prisma/enums';
 import { Injectable } from '@nestjs/common';
-import { Task } from 'generated/prisma/client';
+import { Task, Prisma } from 'generated/prisma/client';
 
+type TaskWithSubtasks = Prisma.TaskGetPayload<{
+  include: { subtasks: true };
+}>;
 @Injectable()
 export class TaskRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -54,15 +57,24 @@ export class TaskRepository {
     });
   }
 
-  findById(id: number): Promise<Task | null> {
-    return this.prisma.task.findUnique({ where: { id } });
+  findById(id: number): Promise<TaskWithSubtasks | null> {
+    return this.prisma.task.findUnique({
+      where: { id },
+      include: {
+        subtasks: true,
+      },
+    });
   }
 
   findDetailById(id: number): Promise<Task | null> {
     return this.prisma.task.findUnique({
       where: { id },
       include: {
-        subtasks: true,
+        subtasks: {
+          include: {
+            subtaskAssignments: true,
+          },
+        },
         taskAssignments: true,
       },
     });

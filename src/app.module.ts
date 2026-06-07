@@ -12,6 +12,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtGuard } from './common/guards/jwt.guard';
 import { CachingModule } from './common/caching/caching.module';
 import { TaskModule } from './modules/task/task.module';
+import { SubtaskModule } from './modules/subtask/subtask.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { TaskModule } from './modules/task/task.module';
     AuthModule,
     UserModule,
     TaskModule,
+    SubtaskModule,
     CachingModule,
     ConfigModule.forRoot({
       load: [databaseConfig, authConfig, cacheConfig],
