@@ -1,9 +1,8 @@
-import { InferAttributes } from 'sequelize';
-import { User } from '../../entities/user.entity';
+import { User } from 'generated/prisma/browser';
 
-export type PlainUserWithoutPassword = InferAttributes<
+export type PlainUserWithoutPassword = Omit<
   User,
-  { omit: 'password' | 'version' | 'createdAt' | 'updatedAt' | 'deletedAt' }
+  'password' | 'createdAt' | 'updatedAt' | 'deletedAt'
 >;
 
 export interface AuthResponse {
