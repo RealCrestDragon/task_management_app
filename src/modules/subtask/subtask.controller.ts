@@ -53,7 +53,7 @@ export class SubtaskController {
 
   @Post()
   @ApiOperation({ summary: 'Create subtask' })
-  @ApiResponse({ status: 200, description: 'Subtask created' })
+  @ApiResponse({ status: 201, description: 'Subtask created' })
   async createSubtask(
     @Param('taskId') taskId: number,
     @User() user: PublicUser,

@@ -20,8 +20,8 @@ export class JobService {
     const query = {
       AND: [{ dueDate: { gte: startTime } }, { dueDate: { lte: endTime } }],
     };
-    const taskType = NotificationType.TASK_ASSIGNED;
-    const subtaskType = NotificationType.SUBTASK_ASSIGNED;
+    const taskType = NotificationType.TASK_REMINDER;
+    const subtaskType = NotificationType.SUBTASK_REMINDER;
     const { title: taskTitle, content: taskContent } =
       NOTIFICATION_CONTENT[taskType];
     const { title: subtaskTitle, content: subtaskContent } =

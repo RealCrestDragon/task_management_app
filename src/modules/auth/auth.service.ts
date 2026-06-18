@@ -91,7 +91,7 @@ export class AuthService {
     const accessToken = this._generateToken(plainUserWithoutPassword);
 
     this._setUserCache(id, plainUserWithoutPassword).catch((error) =>
-      console.log(`Catching for user ${id} fail`, error),
+      console.log(`Caching for user ${id} fail`, error),
     );
 
     return { user: plainUserWithoutPassword, accessToken };

@@ -47,7 +47,7 @@ export class TaskController {
 
   @Post()
   @ApiOperation({ summary: 'Create task' })
-  @ApiResponse({ status: 200, description: 'Task created' })
+  @ApiResponse({ status: 201, description: 'Task created' })
   async createTask(
     @User() user: PublicUser,
     @Body() payload: CreateTaskDto,

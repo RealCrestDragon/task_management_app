@@ -40,7 +40,7 @@ export class TagController {
 
   @Post()
   @ApiOperation({ summary: 'Create tag' })
-  @ApiResponse({ status: 200, description: 'Tag created' })
+  @ApiResponse({ status: 201, description: 'Tag created' })
   async createTags(@Body() payload: CreateTagDto): Promise<Tag> {
     return this.tagService.createTag(payload);
   }

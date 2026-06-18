@@ -14,8 +14,11 @@ export class AppGateway implements OnGatewayConnection {
 
   async handleConnection(client: Socket): Promise<void> {
     try {
-      const token = client.handshake.auth.token as string;
-      const payload = await this.jwtService.verifyAsync<{ id: number }>(token);
+      const token = client.handshake.query.token as string;
+      const trimmedToken = token.replace('Bearer ', '');
+      const payload = await this.jwtService.verifyAsync<{ id: number }>(
+        trimmedToken,
+      );
       const { id } = payload;
       await client.join(`user:${id}`);
     } catch {
