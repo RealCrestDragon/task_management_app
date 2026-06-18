@@ -9,5 +9,6 @@ import { QueueModule } from 'src/common/queue/queue.module';
   imports: [QueueModule],
   controllers: [TaskController],
   providers: [TaskService, TaskRepository, TaskAssignmentRepository],
+  exports: [TaskRepository],
 })
 export class TaskModule {}

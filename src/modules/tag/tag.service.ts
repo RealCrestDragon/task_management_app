@@ -23,4 +23,8 @@ export class TagService {
   async updateTag(id: number, payload: UpdateTagDto): Promise<Tag> {
     return this.tagRepository.updateTag(id, payload);
   }
+
+  async deleteTag(id: number): Promise<Tag> {
+    return this.tagRepository.deleteTag(id);
+  }
 }

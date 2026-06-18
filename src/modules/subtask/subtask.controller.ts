@@ -18,12 +18,22 @@ import { QuerySubtaskDto } from './dto/querySubtask.dto';
 import { AssignSubtaskDto } from './dto/assignSubtask.dto';
 import { UpdateSubtaskStatusDto } from './dto/updateSubtaskStatus.dto';
 import { Subtask, SubtaskAssignment } from 'generated/prisma/client';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
-@Controller('task/:taskId/subtask')
+@ApiTags('subtasks')
+@ApiBearerAuth()
+@Controller('task/:taskId/subtasks')
 export class SubtaskController {
   constructor(private readonly subtaskService: SubtaskService) {}
 
   @Get()
+  @ApiOperation({ summary: 'Get list of subtasks' })
+  @ApiResponse({ status: 200, description: 'Subtask list' })
   async getSubtasks(
     @Param('taskId') taskId: number,
     @Query() query: QuerySubtaskDto,
@@ -32,6 +42,8 @@ export class SubtaskController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get subtask detail' })
+  @ApiResponse({ status: 200, description: 'Subtask detail' })
   async getDetailSubtask(
     @Param('taskId') taskId: number,
     @Param('id') id: number,
@@ -40,6 +52,8 @@ export class SubtaskController {
   }
 
   @Post()
+  @ApiOperation({ summary: 'Create subtask' })
+  @ApiResponse({ status: 200, description: 'Subtask created' })
   async createSubtask(
     @Param('taskId') taskId: number,
     @User() user: PublicUser,
@@ -49,6 +63,8 @@ export class SubtaskController {
   }
 
   @Put(':id')
+  @ApiOperation({ summary: 'Update subtask' })
+  @ApiResponse({ status: 200, description: 'Subtask updated' })
   async updateSubtask(
     @Param('taskId') taskId: number,
     @Param('id') id: number,
@@ -58,6 +74,8 @@ export class SubtaskController {
   }
 
   @Post(':id/assign')
+  @ApiOperation({ summary: 'Assign subtask for user(s)' })
+  @ApiResponse({ status: 200, description: 'Subtask assigned' })
   async assignSubtask(
     @Param('taskId') taskId: number,
     @Param('id') id: number,
@@ -68,6 +86,8 @@ export class SubtaskController {
   }
 
   @Patch(':id/update-status')
+  @ApiOperation({ summary: 'Update subtask status' })
+  @ApiResponse({ status: 200, description: 'Subtask status updated' })
   async updateStatus(
     @Param('id') id: number,
     @Body() payload: UpdateSubtaskStatusDto,
@@ -76,6 +96,8 @@ export class SubtaskController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete subtask' })
+  @ApiResponse({ status: 200, description: 'Subtask deleted' })
   async deleteSubtask(@Param('id') id: number): Promise<Subtask> {
     return this.subtaskService.deleteSubtask(id);
   }

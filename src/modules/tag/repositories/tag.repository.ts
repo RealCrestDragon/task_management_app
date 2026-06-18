@@ -28,4 +28,10 @@ export class TagRepository {
       data: payload,
     });
   }
+
+  async deleteTag(id: number): Promise<Tag> {
+    return this.prisma.tag.delete({
+      where: { id },
+    });
+  }
 }
