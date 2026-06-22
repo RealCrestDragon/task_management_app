@@ -14,9 +14,11 @@ import { UserModule } from './modules/user/user.module';
 import { TaskModule } from './modules/task/task.module';
 import { SubtaskModule } from './modules/subtask/subtask.module';
 import { TagModule } from './modules/tag/tag.module';
+import { redisConfig } from './config/cache.config';
 import databaseConfig from './config/database.config';
 import authConfig from './config/auth.config';
 import cacheConfig from './config/cache.config';
+import appConfig from './config/app.config';
 
 @Module({
   imports: [
@@ -30,12 +32,12 @@ import cacheConfig from './config/cache.config';
     JobModule,
     ScheduleModule.forRoot(),
     ConfigModule.forRoot({
-      load: [databaseConfig, authConfig, cacheConfig],
+      load: [databaseConfig, authConfig, cacheConfig, appConfig],
     }),
     BullModule.forRoot({
       connection: {
-        host: 'localhost',
-        port: 6379,
+        host: redisConfig.REDIS_HOST,
+        port: redisConfig.REDIS_PORT,
       },
     }),
   ],
